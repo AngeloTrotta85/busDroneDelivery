@@ -19,13 +19,49 @@
 #include <ctime>        // struct std::tm
 #include <time.h>
 
+#include "Uav.h"
+#include "Home.h"
+#include "DeliveryPoint.h"
+
+class InputParser{
+public:
+	InputParser (int &argc, char **argv){
+		for (int i=1; i < argc; ++i)
+			this->tokens.push_back(std::string(argv[i]));
+	}
+	const std::string& getCmdOption(const std::string &option) const{
+		std::vector<std::string>::const_iterator itr;
+		itr =  std::find(this->tokens.begin(), this->tokens.end(), option);
+		if (itr != this->tokens.end() && ++itr != this->tokens.end()){
+			return *itr;
+		}
+		static const std::string empty_string("");
+		return empty_string;
+	}
+	bool cmdOptionExists(const std::string &option) const{
+		return std::find(this->tokens.begin(), this->tokens.end(), option)
+		!= this->tokens.end();
+	}
+private:
+	std::vector <std::string> tokens;
+};
+
 class Simulator {
 public:
 	Simulator();
 	virtual ~Simulator();
 
+	void importSomeParameterFromInputLine(InputParser *inputVal);
+
+	void run(void);
+	bool init(void);
+	void stats(std::string outFileName);
+
 	bool importHomes(std::string homesFileName);
 	bool importDeliveryPoints(std::string deliveryPointsFileName);
+
+	unsigned int getUav() const {		return nUAV;	}
+	void setUav(unsigned int uav) {		nUAV = uav;	}
 
 public:
 	// This function converts decimal degrees to radians
@@ -53,6 +89,18 @@ public:
 		v = sin((lon2r - lon1r)/2);
 		return 2.0 * 6371.0 * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v)) * 1000.0;
 	}
+
+private:
+	std::map<unsigned int, Home> homesMap;
+	std::map<unsigned int, DeliveryPoint> deliveryPointsMap;
+
+	unsigned int nUAV;
+	std::list<Uav *> listUav;
+
+	unsigned int finalLifetime;
+
+	double initialUavEnergy; //Joule
+
 };
 
 #endif /* SIMULATOR_H_ */

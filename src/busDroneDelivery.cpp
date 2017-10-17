@@ -26,33 +26,11 @@
 
 using namespace std;
 
-class InputParser{
-public:
-	InputParser (int &argc, char **argv){
-		for (int i=1; i < argc; ++i)
-			this->tokens.push_back(std::string(argv[i]));
-	}
-	const std::string& getCmdOption(const std::string &option) const{
-		std::vector<std::string>::const_iterator itr;
-		itr =  std::find(this->tokens.begin(), this->tokens.end(), option);
-		if (itr != this->tokens.end() && ++itr != this->tokens.end()){
-			return *itr;
-		}
-		static const std::string empty_string("");
-		return empty_string;
-	}
-	bool cmdOptionExists(const std::string &option) const{
-		return std::find(this->tokens.begin(), this->tokens.end(), option)
-		!= this->tokens.end();
-	}
-private:
-	std::vector <std::string> tokens;
-};
-
 int main(int argc, char **argv) {
 
 	Simulator sim;
 	InputParser input(argc, argv);
+	sim.importSomeParameterFromInputLine(&input);
 
 	const std::string &fileHomeStations = input.getCmdOption("-fH");
 	if (!fileHomeStations.empty()) {
@@ -70,6 +48,48 @@ int main(int argc, char **argv) {
 	else {
 		cerr << "Insert the delivery points file input" << endl;
 		exit (EXIT_FAILURE);
+	}
+
+	//std::srand(100);
+	const std::string &seedString = input.getCmdOption("-seed");
+	if (!seedString.empty()) {
+		std::srand(atol(seedString.c_str()));
+	}
+	else {
+		std::srand(std::time(0)); // use current time as seed for random generator
+	}
+
+	//set the number of UAV
+	const std::string &nUavString = input.getCmdOption("-nUAV");
+	if (!nUavString.empty()) {
+		sim.setUav(atol(nUavString.c_str()));
+	}
+	else {
+		sim.setUav(12);
+	}
+
+	// init the simulation
+	if (!sim.init()) {
+		cout << "Error initializing the simulation" << endl;
+		return EXIT_FAILURE;
+	}
+
+	if (input.cmdOptionExists("-noRun")) exit (EXIT_SUCCESS);
+
+	// run the simulation
+	cout << "Running the simulation" << endl;
+	sim.run();
+
+	// make stats
+	cout << "Making stats" << endl;
+	//sim.stats();
+	const std::string &statsFileName = input.getCmdOption("-oSTAT");
+	if (!statsFileName.empty()) {
+		sim.stats(std::string(statsFileName));
+	}
+	else {
+		sim.stats(std::string(""));
+
 	}
 
 	cout << "End Simulation!" << endl;
