@@ -10,7 +10,10 @@
 int Uav::idCounter = 0;
 
 Uav::Uav() {
-	state = UAV_FLYING;
+	state = UAV_CHARGING;
+	charge_state = UAV_CHARGING_ATHOME;
+	fly_state = UAV_FLYING_FREE;
+	load_weight = 0;
 
 	resudualEnergy = 0;
 
@@ -21,9 +24,15 @@ Uav::~Uav() {
 	// TODO Auto-generated destructor stub
 }
 
-double Uav::addEnergy(double difference) {
+double Uav::addEnergy(double difference, double seconds) {
 
-	resudualEnergy += difference;
+	resudualEnergy += difference * seconds;
+
+	if (resudualEnergy < 0) {
+		resudualEnergy = 0;
+	} else if (resudualEnergy > maxEnergy) {
+		resudualEnergy = maxEnergy;
+	}
 
 	return resudualEnergy;
 }

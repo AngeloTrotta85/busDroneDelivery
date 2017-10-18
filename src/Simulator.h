@@ -89,6 +89,8 @@ public:
 		v = sin((lon2r - lon1r)/2);
 		return 2.0 * 6371.0 * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v)) * 1000.0;
 	}
+private:
+	void updateBatteries(Uav *u);
 
 private:
 	std::map<unsigned int, Home> homesMap;
@@ -99,7 +101,19 @@ private:
 
 	unsigned int finalLifetime;
 
+	std::string operationalDay;
+	struct std::tm operationalDay_tm;
+	struct std::tm start_sim_time_tm;
+	struct std::tm end_sim_time_tm;
+
+
+
 	double initialUavEnergy; //Joule
+
+	// Watt
+	double eFLYING_FREE;
+	double eRECHARGING_HOME;
+	double eRECHARGING_BUS;
 
 };
 

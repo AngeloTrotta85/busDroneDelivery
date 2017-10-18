@@ -17,6 +17,30 @@ Simulator::~Simulator() {
 Simulator::Simulator() {
 	// TODO Auto-generated constructor stub
 
+	operationalDay = std::string("20170522"); // Monday 2017-05-22
+	operationalDay_tm.tm_year = 117;
+	operationalDay_tm.tm_mon = 4;
+	operationalDay_tm.tm_mday = 22;
+	operationalDay_tm.tm_wday = 1;
+	operationalDay_tm.tm_sec = operationalDay_tm.tm_min = operationalDay_tm.tm_hour = 0;
+	operationalDay_tm.tm_yday = 141;
+	operationalDay_tm.tm_isdst = 1;
+
+	start_sim_time_tm = operationalDay_tm;
+	start_sim_time_tm.tm_hour = 8;
+
+	end_sim_time_tm = operationalDay_tm;
+	end_sim_time_tm.tm_hour = 9;
+
+	eFLYING_FREE = 50;
+	eRECHARGING_HOME = 15;
+	eRECHARGING_BUS = 5;
+
+	nUAV = 1;
+	initialUavEnergy = 60000;
+
+	finalLifetime = 0;
+
 }
 
 void Simulator::importSomeParameterFromInputLine(InputParser *inputVal) {
@@ -125,10 +149,52 @@ bool Simulator::init() {
 		Uav *newUav = new Uav();
 
 		newUav->setResudualEnergy(initialUavEnergy);
+		newUav->setMaxEnergy(initialUavEnergy);
+
 		listUav.push_back(newUav);
 	}
 
 	return ris;
+}
+
+void Simulator::updateBatteries(Uav *u) {
+	Uav::UAV_STATE us = u->getState();
+	Uav::UAV_CHARGING_STATE cs_us = u->getChargeState();
+	Uav::UAV_FLYING_STATE fs_us = u->getFlyState();
+	unsigned int lw = u->getLoadWeight();
+	double eFLYING_withLoad;
+
+	if (us == Uav::UAV_FLYING) {
+		switch (fs_us) {
+		case Uav::UAV_FLYING_WITH_LOAD:
+			eFLYING_withLoad = eFLYING_FREE + lw; //TODO
+			u->addEnergy(eFLYING_withLoad, 1);
+			break;
+
+		case Uav::UAV_FLYING_FREE:
+		default:
+			u->addEnergy(eFLYING_FREE, 1);
+			break;
+		}
+
+	} else if (us == Uav::UAV_CHARGING) {
+		switch (cs_us) {
+		case Uav::UAV_CHARGING_ATHOME:
+		default:
+			u->addEnergy(eRECHARGING_HOME, 1);
+			break;
+
+		case Uav::UAV_CHARGING_ONBUS:
+			u->addEnergy(eRECHARGING_BUS, 1);
+			break;
+		}
+	}
+	else { //if (us == Uav::UAV_STOP) {
+		// EXAMPLE: on-bus without charging
+		// NOTHING ???
+	}
+
+
 }
 
 void Simulator::run(void) {
@@ -145,7 +211,7 @@ void Simulator::run(void) {
 		fprintf(stdout, "\rSimulation time: %u seconds - %s", t, buffer);fflush(stdout);
 
 		//flowGraph.execute(t, listUav);
-		flowGraph->execute(t_tm, listUav);
+		//flowGraph->execute(t_tm, listUav);
 
 		//updateThe batteries
 		for(auto& uav : listUav) {
@@ -164,8 +230,8 @@ void Simulator::run(void) {
 		t_tm.tm_sec = t_tm.tm_sec + 1;
 		mktime(&t_tm);
 	//} while ((t < maxTime) && alive);
-	//} while ((difftime(mktime(&end_sim_time_tm), mktime(&t_tm)) >= 0) && alive);
-	} while (alive);
+	} while ((difftime(mktime(&end_sim_time_tm), mktime(&t_tm)) > 0) && alive);
+	//} while (alive);
 	cout << endl;
 
 	finalLifetime = t;
@@ -178,9 +244,22 @@ void Simulator::stats(std::string outFileName) {
 	std::ofstream statStream(outFileName, std::ofstream::out);
 	bool fOutOK = statStream.is_open();
 
-	//if (fOutOK) statStream << "LIFETIME_MIN " << finalLifetime/60.0 << endl;
+	cout << "FINAL STATS: " << endl;
 
-	if (fOutOK) statStream.close();
+
+
+	cout << "SYSTEM LIFETIME: " << finalLifetime << " sec" << endl;
+	cout << "SYSTEM LIFETIME: " << finalLifetime/60.0 << " min" << endl;
+
+
+
+	if (fOutOK)  {
+		statStream << "LIFETIME_MIN " << finalLifetime/60.0 << endl;
+		statStream << "LIFETIME_SEC " << finalLifetime << endl;
+
+		statStream.close();
+	}
+
 }
 
 
