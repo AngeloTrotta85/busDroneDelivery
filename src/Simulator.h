@@ -22,6 +22,7 @@
 #include "Uav.h"
 #include "Home.h"
 #include "DeliveryPoint.h"
+#include "Warehouse.h"
 
 class InputParser{
 public:
@@ -95,6 +96,8 @@ private:
 private:
 	std::map<unsigned int, Home> homesMap;
 	std::map<unsigned int, DeliveryPoint> deliveryPointsMap;
+
+	Warehouse wa;
 
 	unsigned int nUAV;
 	std::list<Uav *> listUav;

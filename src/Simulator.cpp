@@ -52,6 +52,18 @@ void Simulator::importSomeParameterFromInputLine(InputParser *inputVal) {
 	else {
 		initialUavEnergy = 130000;
 	}
+
+	// WAREHOUSE
+	const std::string &defPckWString = inputVal->getCmdOption("-defPW");
+	if (!defPckWString.empty()) {
+		wa.setDefaultWeight_grams(atof(defPckWString.c_str()));
+	}
+
+	const std::string &defPckNumString = inputVal->getCmdOption("-defPN");
+	if (!defPckNumString.empty()) {
+		wa.setPacketInitNumber(atoi(defPckNumString.c_str()));
+	}
+
 }
 
 
