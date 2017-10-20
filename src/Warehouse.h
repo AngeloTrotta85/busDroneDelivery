@@ -19,31 +19,32 @@
 #include <ctime>        // struct std::tm
 #include <time.h>
 
-class Package {
-public:
-	Package(double p, double l, double w, double h) : weight(w), length(l), width(w), height(h) {};
-	virtual ~Package();
+#include "Package.h"
 
-private:
-	double weight;
-	double length;
-	double width;
-	double height;
-};
+using namespace std;
+
 
 class Warehouse {
 public:
 	Warehouse();
 	virtual ~Warehouse();
 
+	void initTime(struct std::tm start_time_tm);
+	void update(struct std::tm now_time_tm);
+
 	void setDefaultWeight_grams(double defaultWeight) { this->defaultWeight = defaultWeight;	}
-	void setPacketInitNumber(double packetNumber) { this->packetNumber = packetNumber;	}
+	void setPacketInitNumber(double packetNumber);
+	void setPacketGenerationRate(double packetGenerationRate) {		this->packetGenerationRate = packetGenerationRate;	}
+
+	unsigned int getWarehousePktNumber(void) { return wareHouse.size(); }
 
 private:
 	std::list<Package *> wareHouse;
 
+	struct std::tm lastPacketGeneration;
+
 	double defaultWeight;
-	unsigned int packetNumber;
+	double packetGenerationRate;
 };
 
 #endif /* WAREHOUSE_H_ */

@@ -22,7 +22,6 @@
 #include "Uav.h"
 #include "Home.h"
 #include "DeliveryPoint.h"
-#include "Warehouse.h"
 
 class InputParser{
 public:
@@ -91,14 +90,13 @@ public:
 		return 2.0 * 6371.0 * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v)) * 1000.0;
 	}
 private:
-	void updateBatteries(Uav *u);
+	void updateBatteries(Uav *u, unsigned int time_step);
 
-private:
+public:
 	std::map<unsigned int, Home> homesMap;
 	std::map<unsigned int, DeliveryPoint> deliveryPointsMap;
 
-	Warehouse wa;
-
+private:
 	unsigned int nUAV;
 	std::list<Uav *> listUav;
 
@@ -108,6 +106,10 @@ private:
 	struct std::tm operationalDay_tm;
 	struct std::tm start_sim_time_tm;
 	struct std::tm end_sim_time_tm;
+
+	double waDefaultW;
+	int waPckInitNum;
+	double waPckGenRate;
 
 
 

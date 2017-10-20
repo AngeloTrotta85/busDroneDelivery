@@ -57,3 +57,10 @@ bool Home::parseInput(const std::string toParse) {
 	return ris;
 }
 
+void Home::init(struct std::tm sim_time_tm) {
+
+	// warehouse initialization
+	wa.initTime(sim_time_tm);
+
+}
+

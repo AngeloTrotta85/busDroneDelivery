@@ -17,6 +17,8 @@
 #include <time.h>        // struct std::tm
 #include <list>        // struct std::tm
 
+#include "Warehouse.h"
+
 using namespace std;
 using namespace boost;
 
@@ -33,6 +35,7 @@ public:
 	Home();
 	virtual ~Home();
 
+	void init(struct std::tm sim_time_tm);
 	bool parseInput(const std::string toParse);
 
 	const std::string& getHomeId() const {		return home_id;	}
@@ -42,6 +45,9 @@ public:
 	const std::string& getHomeName() const { return home_name;	}
 	double getHomeLatNum() const {		return home_lat_num;	}
 	double getHomeLonNum() const {		return home_lon_num;	}
+
+public:
+	Warehouse wa;
 
 private:
 	std::string home_id;

@@ -9,7 +9,10 @@
 #define UAV_H_
 
 #include <limits.h>
+#include <ctime>        // struct std::tm
+#include <time.h>
 
+class Simulator;
 
 class Uav {
 	static int idCounter;
@@ -32,8 +35,10 @@ public:
 	} UAV_FLYING_STATE;
 
 public:
-	Uav();
+	Uav(Simulator *sim);
 	virtual ~Uav();
+
+	void run(struct std::tm now_time_tm, unsigned int time_step);
 
 	double addEnergy(double difference, double seconds);
 
@@ -50,9 +55,14 @@ public:
 	void setFlyState(UAV_FLYING_STATE flyState) {		fly_state = flyState;	}
 	unsigned int getLoadWeight() const {		return load_weight;	}
 	void setLoadWeight(unsigned int loadWeight) {		load_weight = loadWeight;	}
-
+	double getPosLon() const {		return pos_lon;	}
+	void setPosLon(double posLon) {		pos_lon = posLon;	}
+	double getPosLat() const {		return pos_lat;	}
+	void setPosLat(double posLat) {		pos_lat = posLat;	}
 
 private:
+	Simulator *simulator;
+
 	double resudualEnergy;
 	double maxEnergy;
 	int id;
@@ -61,6 +71,9 @@ private:
 	UAV_CHARGING_STATE charge_state;
 	UAV_FLYING_STATE fly_state;
 	unsigned int load_weight;
+
+	double pos_lon;
+	double pos_lat;
 };
 
 
