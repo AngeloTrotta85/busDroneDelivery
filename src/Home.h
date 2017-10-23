@@ -22,6 +22,8 @@
 using namespace std;
 using namespace boost;
 
+class Simulator;
+
 class Home {
 public:
 	typedef enum {
@@ -35,8 +37,13 @@ public:
 	Home();
 	virtual ~Home();
 
+	void setSimulator(Simulator *sim) {simulator = sim;};
+
 	void init(struct std::tm sim_time_tm);
+	void update(struct std::tm now_time_tm);
 	bool parseInput(const std::string toParse);
+	unsigned int getWA_pktNumber(void);
+	void setWA_parameters(double defW, int initPck, double genRate, std::map<unsigned int, DeliveryPoint> &dp);
 
 	const std::string& getHomeId() const {		return home_id;	}
 	unsigned int getHomeIdNum() const {		return home_id_num;	}
@@ -50,6 +57,8 @@ public:
 	Warehouse wa;
 
 private:
+	Simulator *simulator;
+
 	std::string home_id;
 	std::string home_name;
 	std::string home_lat;

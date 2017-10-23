@@ -8,16 +8,20 @@
 #ifndef PACKAGE_H_
 #define PACKAGE_H_
 
+#include "DeliveryPoint.h"
+
 class Package {
 public:
 	Package(double p, double l, double w, double h);
 	virtual ~Package();
 
-private:
+public:
 	double weight;
 	double length;
 	double width;
 	double height;
+
+	DeliveryPoint *dest_dp;
 
 	static int id_counter;
 	int id;

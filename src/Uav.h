@@ -12,6 +12,8 @@
 #include <ctime>        // struct std::tm
 #include <time.h>
 
+#include "Home.h"
+
 class Simulator;
 
 class Uav {
@@ -34,6 +36,11 @@ public:
 		UAV_FLYING_WITH_LOAD
 	} UAV_FLYING_STATE;
 
+	typedef enum {
+		UAV_FLYING_DELIVERING,
+		UAV_FLYING_GOING_HOME
+	} UAV_FLYING_GOAL;
+
 public:
 	Uav(Simulator *sim);
 	virtual ~Uav();
@@ -41,6 +48,8 @@ public:
 	void run(struct std::tm now_time_tm, unsigned int time_step);
 
 	double addEnergy(double difference, double seconds);
+
+	bool check_pkt_feasibility(Package *p);
 
 	int getId() const {		return id;	}
 	double getResudualEnergy() const {		return resudualEnergy;	}
@@ -59,18 +68,36 @@ public:
 	void setPosLon(double posLon) {		pos_lon = posLon;	}
 	double getPosLat() const {		return pos_lat;	}
 	void setPosLat(double posLat) {		pos_lat = posLat;	}
+	Home* getBelongingHome()  {		return belongingHome;	}
+	void setBelongingHome(Home* belongingHome) {		this->belongingHome = belongingHome;	}
+	double getDestLon() const {		return dest_lon;	}
+	void setDestLon(double destLon) {		dest_lon = destLon;	}
+	double getDestLat() const {		return dest_lat;	}
+	void setDestLat(double destLat) {		dest_lat = destLat;	}
+	double getAverageSpeed() const {		return averageSpeed;	}
+	void setAverageSpeed(double averageSpeed) {		this->averageSpeed = averageSpeed;	}
+	unsigned int getDeliveredPackage() const {		return deliveredPackage;	}
+	void setDeliveredPackage(unsigned int deliveredPackage) {		this->deliveredPackage = deliveredPackage;	}
 
 private:
 	Simulator *simulator;
+	Home *belongingHome;
+	Package *carryingPackage;
 
 	double resudualEnergy;
 	double maxEnergy;
 	int id;
+	double averageSpeed;
+	unsigned int deliveredPackage;
 
 	UAV_STATE state;
 	UAV_CHARGING_STATE charge_state;
 	UAV_FLYING_STATE fly_state;
+	UAV_FLYING_GOAL fly_goal;
 	unsigned int load_weight;
+
+	double dest_lon;
+	double dest_lat;
 
 	double pos_lon;
 	double pos_lat;

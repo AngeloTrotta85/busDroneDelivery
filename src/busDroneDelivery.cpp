@@ -32,21 +32,21 @@ int main(int argc, char **argv) {
 	InputParser input(argc, argv);
 	sim.importSomeParameterFromInputLine(&input);
 
-	const std::string &fileHomeStations = input.getCmdOption("-fH");
-	if (!fileHomeStations.empty()) {
-		sim.importHomes(fileHomeStations);
-	}
-	else {
-		cerr << "Insert the home stations file input" << endl;
-		exit (EXIT_FAILURE);
-	}
-
 	const std::string &fileDeliveryPoints = input.getCmdOption("-fDP");
 	if (!fileDeliveryPoints.empty()) {
 		sim.importDeliveryPoints(fileDeliveryPoints);
 	}
 	else {
 		cerr << "Insert the delivery points file input" << endl;
+		exit (EXIT_FAILURE);
+	}
+
+	const std::string &fileHomeStations = input.getCmdOption("-fH");
+	if (!fileHomeStations.empty()) {
+		sim.importHomes(fileHomeStations);
+	}
+	else {
+		cerr << "Insert the home stations file input" << endl;
 		exit (EXIT_FAILURE);
 	}
 
@@ -67,6 +67,17 @@ int main(int argc, char **argv) {
 	else {
 		sim.setUav(12);
 	}
+
+	// tests
+	/*{
+		cout << "Distance from 44.505765754071,11.3431758861234 to 44.505122,11.331807 -> "
+				<< Simulator::distanceEarth(44.505765754071,11.3431758861234, 44.505122,11.331807) << endl;
+
+		std::pair<double, double> newCoord = Simulator::moveOnEarth(44.505765754071,11.3431758861234, 44.505122,11.331807, 20, 8);
+
+		cout << "Distance from 44.505765754071,11.3431758861234 to " << newCoord.first << "," << newCoord.second <<  " -> "
+						<< Simulator::distanceEarth(44.505765754071,11.3431758861234, newCoord.first,newCoord.second) << endl;
+	}*/
 
 	// init the simulation
 	if (!sim.init()) {

@@ -77,7 +77,7 @@ public:
 	 * @param lon1d Longitude of the first point in degrees
 	 * @param lat2d Latitude of the second point in degrees
 	 * @param lon2d Longitude of the second point in degrees
-	 * @return The distance between the two points in kilometers
+	 * @return The distance between the two points in meters
 	 */
 	static double distanceEarth(double lat1d, double lon1d, double lat2d, double lon2d) {
 		double lat1r, lon1r, lat2r, lon2r, u, v;
@@ -88,6 +88,23 @@ public:
 		u = sin((lat2r - lat1r)/2);
 		v = sin((lon2r - lon1r)/2);
 		return 2.0 * 6371.0 * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v)) * 1000.0;
+	}
+
+	static std::pair<double,double> moveOnEarth(double latSrc_d, double lonSrc_d, double latDest_d, double lonDest_d, double speed, double time_s) {
+		double dist_src_dest = distanceEarth( latSrc_d, lonSrc_d, latDest_d, lonDest_d);
+		double dist_on_step = speed * time_s;
+		if (dist_on_step >= dist_src_dest) {
+			return make_pair(latDest_d,lonDest_d);
+		}
+		else {
+			double latStep_d, lonStep_d;
+			double ratio = dist_src_dest / dist_on_step;
+
+			latStep_d = latSrc_d + ((latDest_d - latSrc_d) / ratio);
+			lonStep_d = lonSrc_d + ((lonDest_d - lonSrc_d) / ratio);
+
+			return make_pair(latStep_d, lonStep_d);
+		}
 	}
 private:
 	void updateBatteries(Uav *u, unsigned int time_step);
@@ -113,7 +130,8 @@ private:
 
 
 
-	double initialUavEnergy; //Joule
+	double initialUavEnergy; 	// Joule
+	double uavAvgSpeed;		 	// m/s
 
 	// Watt
 	double eFLYING_FREE;

@@ -6,14 +6,13 @@
  */
 
 #include "Home.h"
+#include "Simulator.h"
 
 Home::Home() {
-	// TODO Auto-generated constructor stub
 
 }
 
 Home::~Home() {
-	// TODO Auto-generated destructor stub
 }
 
 bool Home::parseInput(const std::string toParse) {
@@ -63,4 +62,20 @@ void Home::init(struct std::tm sim_time_tm) {
 	wa.initTime(sim_time_tm);
 
 }
+
+void Home::update(struct std::tm now_time_tm) {
+	// warehouse initialization
+	wa.update(now_time_tm, simulator->deliveryPointsMap);
+}
+
+unsigned int Home::getWA_pktNumber(void) {
+	return wa.getWarehousePktNumber();
+}
+
+void Home::setWA_parameters(double defW, int initPck, double genRate, std::map<unsigned int, DeliveryPoint> &dp) {
+	wa.setDefaultWeight_grams(defW);
+	wa.setPacketInitNumber(initPck, dp);
+	wa.setPacketGenerationRate(genRate);
+}
+
 

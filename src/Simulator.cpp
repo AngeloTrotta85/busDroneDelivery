@@ -32,12 +32,13 @@ Simulator::Simulator() {
 	end_sim_time_tm = operationalDay_tm;
 	end_sim_time_tm.tm_hour = 9;
 
-	eFLYING_FREE = 50;
+	eFLYING_FREE = -50;
 	eRECHARGING_HOME = 15;
 	eRECHARGING_BUS = 5;
 
 	nUAV = 1;
 	initialUavEnergy = 60000;
+	uavAvgSpeed = 20.0;
 
 	finalLifetime = 0;
 
@@ -55,6 +56,15 @@ void Simulator::importSomeParameterFromInputLine(InputParser *inputVal) {
 	}
 	else {
 		initialUavEnergy = 130000;
+	}
+
+	// UAV AVERAGE SPEED
+	const std::string &avgSpeedString = inputVal->getCmdOption("-avgS");
+	if (!avgSpeedString.empty()) {
+		uavAvgSpeed = atof(avgSpeedString.c_str());
+	}
+	else {
+		uavAvgSpeed = 20;
 	}
 
 	// WAREHOUSE
@@ -98,12 +108,14 @@ bool Simulator::importHomes(std::string homesFileName) {
 		}
 		else {
 			Home newHome;
+			newHome.setSimulator(this);
 
 			if(newHome.parseInput(str)){
 				newHome.init(start_sim_time_tm);
-				newHome.wa.setDefaultWeight_grams(waDefaultW);
-				newHome.wa.setPacketInitNumber(waPckInitNum);
-				newHome.wa.setPacketGenerationRate(waPckGenRate);
+				//newHome.wa.setDefaultWeight_grams(waDefaultW);
+				//newHome.wa.setPacketInitNumber(waPckInitNum);
+				//newHome.wa.setPacketGenerationRate(waPckGenRate);
+				//newHome.setWA_parameters(waDefaultW, waPckInitNum, waPckGenRate);
 				homesMap[newHome.getHomeIdNum()] = newHome;
 			}
 			else {
@@ -176,13 +188,27 @@ bool Simulator::init() {
 
 		newUav->setResudualEnergy(initialUavEnergy);
 		newUav->setMaxEnergy(initialUavEnergy);
+		newUav->setAverageSpeed(uavAvgSpeed);
 
 		if (homesMap.size() > 0) {
-			newUav->setPosLon(homesMap.begin()->second.getHomeLonNum());
-			newUav->setPosLat(homesMap.begin()->second.getHomeLatNum());
+			auto hIT = homesMap.begin();
+			int idxRand = rand() % homesMap.size();
+
+			while (idxRand > 0) {
+				hIT++;
+				--idxRand;
+			}
+			newUav->setPosLon(hIT->second.getHomeLonNum());
+			newUav->setPosLat(hIT->second.getHomeLatNum());
+			newUav->setBelongingHome((Home *) (&(hIT->second)));
 		}
 
 		listUav.push_back(newUav);
+	}
+
+	// init the homes
+	for (auto& h : homesMap) {
+		h.second.setWA_parameters(waDefaultW, waPckInitNum, waPckGenRate, deliveryPointsMap);
 	}
 
 	return ris;
@@ -192,13 +218,12 @@ void Simulator::updateBatteries(Uav *u, unsigned int time_step) {
 	Uav::UAV_STATE us = u->getState();
 	Uav::UAV_CHARGING_STATE cs_us = u->getChargeState();
 	Uav::UAV_FLYING_STATE fs_us = u->getFlyState();
-	unsigned int lw = u->getLoadWeight();
 	double eFLYING_withLoad;
 
 	if (us == Uav::UAV_FLYING) {
 		switch (fs_us) {
 		case Uav::UAV_FLYING_WITH_LOAD:
-			eFLYING_withLoad = eFLYING_FREE + lw; //TODO
+			eFLYING_withLoad = eFLYING_FREE * 2.0; //TODO
 			u->addEnergy(eFLYING_withLoad, time_step);
 			break;
 
@@ -242,12 +267,13 @@ void Simulator::run(void) {
 		std::strftime(buffer, sizeof(buffer), "%a, %d.%m.%Y %H:%M:%S", &t_tm);
 		fprintf(stdout, "\rSimulation time: %05u seconds - %s - ", t, buffer);
 		for (auto& h : homesMap) {
-			fprintf(stdout, "{wa%d|%d} ", h.second.getHomeIdNum(), h.second.wa.getWarehousePktNumber());
+			fprintf(stdout, "{wa%d|%d} ", h.second.getHomeIdNum(), h.second.getWA_pktNumber());
 		}
 		cout << "- ";
 		for (auto& uav : listUav) {
-			fprintf(stdout, "[%d|%.02f] ", uav->getId(), uav->getResudualEnergy());
+			fprintf(stdout, "[%d|%.02f|P%d] ", uav->getId(), uav->getResudualEnergy(), uav->getDeliveredPackage());
 		}
+		cout << endl;
 		fflush(stdout);
 
 		//flowGraph.execute(t, listUav);
@@ -255,7 +281,7 @@ void Simulator::run(void) {
 
 		//update the warehouses
 		for (auto& h : homesMap) {
-			h.second.wa.update(t_tm);
+			h.second.update(t_tm);
 		}
 
 		// execute the uav

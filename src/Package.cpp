@@ -20,5 +20,7 @@ Package::Package(double p, double l, double w, double h) {
 	width = w;
 	height = h;
 
+	dest_dp = nullptr;
+
 	id = id_counter++;
 }
