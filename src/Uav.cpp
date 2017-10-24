@@ -20,6 +20,9 @@ Uav::Uav(Simulator *sim) {
 	load_weight = 0;
 	maxEnergy = 130000;
 
+	estimatedEnergyLossOnPackage = 0;
+	energyAtPackageLoad = 0;
+
 	resudualEnergy = 0;
 	belongingHome = nullptr;
 	carryingPackage = nullptr;
@@ -53,8 +56,53 @@ double Uav::addEnergy(double difference, double seconds) {
 }
 
 bool Uav::check_pkt_feasibility(Package *p) {
-	bool ris = true;
+	bool ris = false;
+	double requestedEnergy = 0;
+	double energy_loss, distance_travel, speed_travel, time_travel;
+
+	// calculate first part
+	energy_loss = simulator->getEnergyLossUav(p->weight);
+	distance_travel = Simulator::distanceEarth(pos_lat, pos_lon, p->dest_dp->getDpLatNum(), p->dest_dp->getDpLonNum());
+	speed_travel = getSpeedWithLoad(averageSpeed, p->weight);
+	time_travel = distance_travel / speed_travel;
+	requestedEnergy += energy_loss * time_travel;
+	//cout << "Andata: el=" << energy_loss << "W; dist=" << distance_travel << "m; speed=" << speed_travel << "m/s; time="
+	//		<< time_travel << "s; reqE=" << requestedEnergy << endl;
+
+	// calculate coming back
+	energy_loss = simulator->getEnergyLossUav(0);
+	distance_travel = Simulator::distanceEarth(p->dest_dp->getDpLatNum(), p->dest_dp->getDpLonNum(), pos_lat, pos_lon);
+	speed_travel = getSpeedWithLoad(averageSpeed, 0);
+	time_travel = distance_travel / speed_travel;
+	requestedEnergy += energy_loss * time_travel;
+	//cout << "Ritorno: el=" << energy_loss << "W; dist=" << distance_travel << "m; speed=" << speed_travel << "m/s; time="
+	//		<< time_travel << "s; reqE=" << (energy_loss * time_travel) << endl;
+	//cout << "Total req = " << requestedEnergy << "J. Mia energia: " << resudualEnergy << endl << endl;
+
+	if ((resudualEnergy + requestedEnergy) > (resudualEnergy * 0.1)) {
+		//cout << "OK, posso trasportarlo" << endl;
+		estimatedEnergyLossOnPackage = requestedEnergy;
+		energyAtPackageLoad = resudualEnergy;
+		ris = true;
+	}
+
 	return ris;
+}
+
+double Uav::getSpeedWithLoad(double speedNoLoad, double loadW) {
+	if (loadW <= 0) {
+		return speedNoLoad;
+	}
+	else {
+		double maxW = 4000.0;
+		if (loadW >= maxW) {
+			return speedNoLoad * 0.5;
+		}
+		else {
+			//return (speedNoLoad * 0.5) + ((1.0 - (loadW / maxW)) * (speedNoLoad * 0.5));
+			return (speedNoLoad - ((speedNoLoad * loadW) / (2.0 * maxW)));
+		}
+	}
 }
 
 void Uav::run(struct std::tm now_time_tm, unsigned int time_step) {
@@ -94,7 +142,9 @@ void Uav::run(struct std::tm now_time_tm, unsigned int time_step) {
 	}
 	else if (state == UAV_FLYING) {
 		//update the position
-		double baseStepMeters = ((double) time_step) * averageSpeed;
+		double actSpeed = getSpeedWithLoad(averageSpeed, load_weight);
+		double baseStepMeters = ((double) time_step) * actSpeed;
+
 		if (Simulator::distanceEarth(pos_lat, pos_lon, dest_lat, dest_lon) < baseStepMeters) {
 			//arrived to destination
 			pos_lat = dest_lat;
@@ -106,6 +156,7 @@ void Uav::run(struct std::tm now_time_tm, unsigned int time_step) {
 				++deliveredPackage;
 				delete(carryingPackage);
 
+				state = UAV_FLYING;
 				fly_goal = UAV_FLYING_GOING_HOME;
 				fly_state = UAV_FLYING_FREE;
 				load_weight = 0;
@@ -121,7 +172,7 @@ void Uav::run(struct std::tm now_time_tm, unsigned int time_step) {
 		}
 		else {
 			// move
-			std::pair<double, double> newCoord = Simulator::moveOnEarth(pos_lat, pos_lon, dest_lat, dest_lon, averageSpeed, time_step);
+			std::pair<double, double> newCoord = Simulator::moveOnEarth(pos_lat, pos_lon, dest_lat, dest_lon, actSpeed, time_step);
 			pos_lat = newCoord.first;
 			pos_lon = newCoord.second;
 		}

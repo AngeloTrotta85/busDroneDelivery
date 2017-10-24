@@ -214,22 +214,31 @@ bool Simulator::init() {
 	return ris;
 }
 
+double Simulator::getEnergyLossUav(double load) {
+	//TODO
+	if (load == 0) {
+		return eFLYING_FREE;
+	}
+	else {
+		double multiplier = 1.0 + (load / 3000.0);
+		return (eFLYING_FREE * multiplier);
+	}
+}
+
 void Simulator::updateBatteries(Uav *u, unsigned int time_step) {
 	Uav::UAV_STATE us = u->getState();
 	Uav::UAV_CHARGING_STATE cs_us = u->getChargeState();
 	Uav::UAV_FLYING_STATE fs_us = u->getFlyState();
-	double eFLYING_withLoad;
 
 	if (us == Uav::UAV_FLYING) {
 		switch (fs_us) {
 		case Uav::UAV_FLYING_WITH_LOAD:
-			eFLYING_withLoad = eFLYING_FREE * 2.0; //TODO
-			u->addEnergy(eFLYING_withLoad, time_step);
+			u->addEnergy(getEnergyLossUav(u->getLoadWeight()), time_step);
 			break;
 
 		case Uav::UAV_FLYING_FREE:
 		default:
-			u->addEnergy(eFLYING_FREE, time_step);
+			u->addEnergy(getEnergyLossUav(0), time_step);
 			break;
 		}
 
@@ -273,7 +282,7 @@ void Simulator::run(void) {
 		for (auto& uav : listUav) {
 			fprintf(stdout, "[%d|%.02f|P%d] ", uav->getId(), uav->getResudualEnergy(), uav->getDeliveredPackage());
 		}
-		cout << endl;
+		//cout << endl;
 		fflush(stdout);
 
 		//flowGraph.execute(t, listUav);
@@ -309,6 +318,13 @@ void Simulator::run(void) {
 	} while ((difftime(mktime(&end_sim_time_tm), mktime(&t_tm)) > 0) && alive);
 	//} while (alive);
 	cout << endl;
+
+	if (!alive) {
+		cout << "One UAV is dead" << endl;
+	}
+	else {
+		cout << "Simulation time expired" << endl;
+	}
 
 	finalLifetime = t;
 	//cout << "System lifetime: " << finalLifetime << endl;

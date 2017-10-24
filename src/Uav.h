@@ -80,6 +80,9 @@ public:
 	void setDeliveredPackage(unsigned int deliveredPackage) {		this->deliveredPackage = deliveredPackage;	}
 
 private:
+	double getSpeedWithLoad(double speedNoLoad, double loadW);
+
+private:
 	Simulator *simulator;
 	Home *belongingHome;
 	Package *carryingPackage;
@@ -89,6 +92,9 @@ private:
 	int id;
 	double averageSpeed;
 	unsigned int deliveredPackage;
+
+	double estimatedEnergyLossOnPackage;
+	double energyAtPackageLoad;
 
 	UAV_STATE state;
 	UAV_CHARGING_STATE charge_state;

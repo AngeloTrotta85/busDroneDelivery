@@ -60,6 +60,8 @@ public:
 	bool importHomes(std::string homesFileName);
 	bool importDeliveryPoints(std::string deliveryPointsFileName);
 
+	double getEnergyLossUav(double load);
+
 	unsigned int getUav() const {		return nUAV;	}
 	void setUav(unsigned int uav) {		nUAV = uav;	}
 
