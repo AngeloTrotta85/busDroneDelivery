@@ -27,7 +27,7 @@ Simulator::Simulator() {
 	operationalDay_tm.tm_isdst = 1;
 
 	start_sim_time_tm = operationalDay_tm;
-	start_sim_time_tm.tm_hour = 8;
+	start_sim_time_tm.tm_hour = 6;
 
 	end_sim_time_tm = operationalDay_tm;
 	end_sim_time_tm.tm_hour = 9;
@@ -282,6 +282,7 @@ void Simulator::run(void) {
 		for (auto& uav : listUav) {
 			fprintf(stdout, "[%d|%.02f|P%d] ", uav->getId(), uav->getResudualEnergy(), uav->getDeliveredPackage());
 		}
+		cout << " ---!";
 		//cout << endl;
 		fflush(stdout);
 

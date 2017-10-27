@@ -18,6 +18,7 @@
 #include <list>        // struct std::tm
 
 #include "Warehouse.h"
+#include "BatteriesManager.h"
 
 using namespace std;
 using namespace boost;
@@ -55,6 +56,7 @@ public:
 
 public:
 	Warehouse wa;
+	BatteriesManager bm;
 
 private:
 	Simulator *simulator;
