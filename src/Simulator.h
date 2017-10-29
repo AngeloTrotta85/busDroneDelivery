@@ -19,6 +19,7 @@
 #include <ctime>        // struct std::tm
 #include <time.h>
 
+#include "Battery.h"
 #include "Uav.h"
 #include "Home.h"
 #include "DeliveryPoint.h"
@@ -130,7 +131,8 @@ private:
 	int waPckInitNum;
 	double waPckGenRate;
 
-
+	int initialNumberBatteryInWA;
+	int initialNumberChargerInWA;
 
 	double initialUavEnergy; 	// Joule
 	double uavAvgSpeed;		 	// m/s

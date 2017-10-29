@@ -13,6 +13,7 @@
 #include <time.h>
 
 #include "Home.h"
+#include "Battery.h"
 
 class Simulator;
 
@@ -52,10 +53,8 @@ public:
 	bool check_pkt_feasibility(Package *p);
 
 	int getId() const {		return id;	}
-	double getResudualEnergy() const {		return resudualEnergy;	}
-	void setResudualEnergy(double resudualEnergy) {		this->resudualEnergy = resudualEnergy;	}
-	double getMaxEnergy() const {		return maxEnergy;	}
-	void setMaxEnergy(double maxEnergy) {		this->maxEnergy = maxEnergy;	}
+	double getResudualEnergy()  {		return batt->getResudualEnergy();	}
+	double getMaxEnergy() {		return batt->getMaxEnergy();	}
 	UAV_STATE getState() const {	return state;	}
 	void setState(UAV_STATE state) {		this->state = state;	}
 	UAV_CHARGING_STATE getChargeState() const {		return charge_state;	}
@@ -78,17 +77,18 @@ public:
 	void setAverageSpeed(double averageSpeed) {		this->averageSpeed = averageSpeed;	}
 	unsigned int getDeliveredPackage() const {		return deliveredPackage;	}
 	void setDeliveredPackage(unsigned int deliveredPackage) {		this->deliveredPackage = deliveredPackage;	}
+	Battery* getBatt() {		return batt;	}
+	void setBatt(Battery* batt) {		this->batt = batt;	}
 
 private:
 	double getSpeedWithLoad(double speedNoLoad, double loadW);
 
 private:
+	Battery *batt;
 	Simulator *simulator;
 	Home *belongingHome;
 	Package *carryingPackage;
 
-	double resudualEnergy;
-	double maxEnergy;
 	int id;
 	double averageSpeed;
 	unsigned int deliveredPackage;

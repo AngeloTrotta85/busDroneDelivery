@@ -18,14 +18,13 @@ Uav::Uav(Simulator *sim) {
 	fly_state = UAV_FLYING_FREE;
 	fly_goal = UAV_FLYING_DELIVERING;
 	load_weight = 0;
-	maxEnergy = 130000;
 
 	estimatedEnergyLossOnPackage = 0;
 	energyAtPackageLoad = 0;
 
-	resudualEnergy = 0;
 	belongingHome = nullptr;
 	carryingPackage = nullptr;
+	batt = nullptr;
 	averageSpeed = 10;
 	deliveredPackage = 0;
 
@@ -43,16 +42,7 @@ Uav::~Uav() {
 
 double Uav::addEnergy(double difference, double seconds) {
 
-	//cout << " Adding/Removing energy: " << (difference * seconds) << endl;
-	resudualEnergy += difference * seconds;
-
-	if (resudualEnergy < 0) {
-		resudualEnergy = 0;
-	} else if (resudualEnergy > maxEnergy) {
-		resudualEnergy = maxEnergy;
-	}
-
-	return resudualEnergy;
+	batt->addEnergy(difference, seconds);
 }
 
 bool Uav::check_pkt_feasibility(Package *p) {
@@ -79,10 +69,10 @@ bool Uav::check_pkt_feasibility(Package *p) {
 	//		<< time_travel << "s; reqE=" << (energy_loss * time_travel) << endl;
 	//cout << "Total req = " << requestedEnergy << "J. Mia energia: " << resudualEnergy << endl << endl;
 
-	if ((resudualEnergy + requestedEnergy) > (resudualEnergy * 0.1)) {
+	if ((batt->getResudualEnergy() + requestedEnergy) > (batt->getResudualEnergy() * 0.1)) {
 		//cout << "OK, posso trasportarlo" << endl;
 		estimatedEnergyLossOnPackage = requestedEnergy;
-		energyAtPackageLoad = resudualEnergy;
+		energyAtPackageLoad = batt->getResudualEnergy();
 		ris = true;
 	}
 

@@ -16,13 +16,23 @@
 #include <time.h>        // struct std::tm
 #include <list>        // struct std::tm
 
-
 using namespace std;
 
 class Battery {
 public:
 	Battery();
 	virtual ~Battery();
+
+	double addEnergy(double difference, double seconds);
+
+	double getMaxEnergy() const {		return maxEnergy;	}
+	void setMaxEnergy(double maxEnergy) {		this->maxEnergy = maxEnergy;	}
+	double getResudualEnergy() const {		return resudualEnergy;	}
+	void setResudualEnergy(double resudualEnergy) {		this->resudualEnergy = resudualEnergy;	}
+
+private:
+	double resudualEnergy;
+	double maxEnergy;
 };
 
 #endif /* BATTERY_H_ */

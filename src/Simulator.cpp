@@ -46,6 +46,9 @@ Simulator::Simulator() {
 	waPckInitNum = 0;
 	waPckGenRate = 1.0/60.0;
 
+	initialNumberBatteryInWA = 10;
+	initialNumberChargerInWA = 2;
+
 }
 
 void Simulator::importSomeParameterFromInputLine(InputParser *inputVal) {
@@ -186,9 +189,12 @@ bool Simulator::init() {
 	for (unsigned int i = 0; i < nUAV; i++) {
 		Uav *newUav = new Uav(this);
 
-		newUav->setResudualEnergy(initialUavEnergy);
-		newUav->setMaxEnergy(initialUavEnergy);
+		Battery *bat = new Battery();
+		bat->setMaxEnergy(initialUavEnergy);
+		bat->setResudualEnergy(initialUavEnergy);
+
 		newUav->setAverageSpeed(uavAvgSpeed);
+		newUav->setBatt(bat);
 
 		if (homesMap.size() > 0) {
 			auto hIT = homesMap.begin();
