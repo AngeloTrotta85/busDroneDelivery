@@ -42,7 +42,7 @@ Uav::~Uav() {
 
 double Uav::addEnergy(double difference, double seconds) {
 
-	batt->addEnergy(difference, seconds);
+	return batt->addEnergy(difference, seconds);
 }
 
 bool Uav::check_pkt_feasibility(Package *p) {
@@ -170,6 +170,13 @@ void Uav::run(struct std::tm now_time_tm, unsigned int time_step) {
 	else { // UAV_STOP
 
 	}
+
+	// update the batteries
+	updateBattery(time_step);
+}
+
+void Uav::updateBattery(unsigned int time_step) {
+//TODO
 }
 
 

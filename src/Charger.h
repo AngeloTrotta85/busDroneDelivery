@@ -22,8 +22,32 @@ using namespace std;
 
 class Charger {
 public:
-	Charger();
+	typedef enum {
+		CHARGER_HOME,
+		CHARGER_BUS
+	} CHARGER_TYPE;
+
+public:
+	Charger(CHARGER_TYPE chargetT);
 	virtual ~Charger();
+
+	bool isFree(void) {return (batterySlot == nullptr);};
+	void rechargeTheBattery(struct std::tm time_tm);
+	bool setBatteryInCharge(Battery *batt, struct std::tm time_tm);
+	Battery *removeBatteryInCharge(void);
+	bool isBatteryFull(void) {return ((batterySlot != nullptr) && (batterySlot->isFull()));};
+
+	Battery* getBatterySlot() {		return batterySlot;	}
+	double getChargingPower() const {		return chargingPower;	}
+	void setChargingPower(double chargingPower) {		this->chargingPower = chargingPower;	}
+
+private:
+	Battery *batterySlot;
+	CHARGER_TYPE ct;
+
+	struct std::tm lastChargeTime;
+
+	double chargingPower;  //Watt
 };
 
 #endif /* CHARGER_H_ */

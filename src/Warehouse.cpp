@@ -21,7 +21,7 @@ void Warehouse::setPacketInitNumber(double packetNumber, std::map<unsigned int, 
 		Package *newPck = new Package(defaultWeight, 10, 10, 10);
 
 		//set random destination
-		if (dp.size() == 0) {cerr << "Warning, delivery points list is empty" << endl;}
+		if (dp.size() == 0) {cerr << "Warning, delivery points list is empty" << endl; exit(EXIT_FAILURE);}
 		int randDP = rand() % dp.size();
 		auto dpIte = dp.begin();
 		while (randDP > 0) {

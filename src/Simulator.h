@@ -19,7 +19,7 @@
 #include <ctime>        // struct std::tm
 #include <time.h>
 
-#include "Battery.h"
+#include "BatteriesManager.h"
 #include "Uav.h"
 #include "Home.h"
 #include "DeliveryPoint.h"
@@ -127,14 +127,11 @@ private:
 	struct std::tm start_sim_time_tm;
 	struct std::tm end_sim_time_tm;
 
-	double waDefaultW;
-	int waPckInitNum;
-	double waPckGenRate;
-
 	int initialNumberBatteryInWA;
 	int initialNumberChargerInWA;
 
 	double initialUavEnergy; 	// Joule
+	double maxUavEnergy; 	// Joule
 	double uavAvgSpeed;		 	// m/s
 
 	// Watt

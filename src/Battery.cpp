@@ -10,7 +10,7 @@
 Battery::Battery() {
 	resudualEnergy = 130000;
 	maxEnergy = 130000;
-
+	state = BATTERY_SELFDISCHARGING;
 }
 
 Battery::~Battery() {

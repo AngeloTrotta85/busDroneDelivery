@@ -37,14 +37,11 @@ Simulator::Simulator() {
 	eRECHARGING_BUS = 5;
 
 	nUAV = 1;
-	initialUavEnergy = 60000;
+	initialUavEnergy = 130000;
+	maxUavEnergy = 130000;
 	uavAvgSpeed = 20.0;
 
 	finalLifetime = 0;
-
-	waDefaultW = 1000;
-	waPckInitNum = 0;
-	waPckGenRate = 1.0/60.0;
 
 	initialNumberBatteryInWA = 10;
 	initialNumberChargerInWA = 2;
@@ -57,8 +54,11 @@ void Simulator::importSomeParameterFromInputLine(InputParser *inputVal) {
 	if (!eInitString.empty()) {
 		initialUavEnergy = atof(eInitString.c_str());
 	}
-	else {
-		initialUavEnergy = 130000;
+
+	// MAX BATTERY ENERGY
+	const std::string &maxBattString = inputVal->getCmdOption("-maxB");
+	if (!maxBattString.empty()) {
+		maxUavEnergy = atof(maxBattString.c_str());
 	}
 
 	// UAV AVERAGE SPEED
@@ -68,23 +68,6 @@ void Simulator::importSomeParameterFromInputLine(InputParser *inputVal) {
 	}
 	else {
 		uavAvgSpeed = 20;
-	}
-
-	// WAREHOUSE
-	const std::string &defPckWString = inputVal->getCmdOption("-defPW");
-	if (!defPckWString.empty()) {
-		//wa.setDefaultWeight_grams(atof(defPckWString.c_str()));
-		waDefaultW = atof(defPckWString.c_str());
-	}
-	const std::string &defPckNumString = inputVal->getCmdOption("-defPN");
-	if (!defPckNumString.empty()) {
-		//wa.setPacketInitNumber(atoi(defPckNumString.c_str()));
-		waPckInitNum = atoi(defPckNumString.c_str());
-	}
-	const std::string &defWAGenString = inputVal->getCmdOption("-waGRsec");
-	if (!defWAGenString.empty()) {
-		//wa.setPacketGenerationRate(atof(defWAGenString.c_str()));
-		waPckGenRate = atof(defWAGenString.c_str());
 	}
 
 }
@@ -190,8 +173,9 @@ bool Simulator::init() {
 		Uav *newUav = new Uav(this);
 
 		Battery *bat = new Battery();
-		bat->setMaxEnergy(initialUavEnergy);
+		bat->setMaxEnergy(maxUavEnergy);
 		bat->setResudualEnergy(initialUavEnergy);
+		bat->setState(Battery::BATTERY_SELFDISCHARGING);
 
 		newUav->setAverageSpeed(uavAvgSpeed);
 		newUav->setBatt(bat);
@@ -214,7 +198,8 @@ bool Simulator::init() {
 
 	// init the homes
 	for (auto& h : homesMap) {
-		h.second.setWA_parameters(waDefaultW, waPckInitNum, waPckGenRate, deliveryPointsMap);
+		h.second.initWA(deliveryPointsMap);
+		h.second.initBM(maxUavEnergy, eRECHARGING_HOME);
 	}
 
 	return ris;
@@ -280,22 +265,25 @@ void Simulator::run(void) {
 		//cout << "Simulation time: " << t << endl;
 
 		std::strftime(buffer, sizeof(buffer), "%a, %d.%m.%Y %H:%M:%S", &t_tm);
-		fprintf(stdout, "\rSimulation time: %05u seconds - %s - ", t, buffer);
+		fprintf(stdout, "\rSimulation time: %05u s; %s; ", t, buffer);
 		for (auto& h : homesMap) {
-			fprintf(stdout, "{wa%d|%d} ", h.second.getHomeIdNum(), h.second.getWA_pktNumber());
+			//fprintf(stdout, "{wa%d|%d} ", h.second.getHomeIdNum(), h.second.getWA_pktNumber());
+			fprintf(stdout, "{wa%d|p%d", h.second.getHomeIdNum(), h.second.getWA_pktNumber());
+			h.second.bm.printBatteriesState();
+			fprintf(stdout, "}");
 		}
-		cout << "- ";
+		cout << "; ";
 		for (auto& uav : listUav) {
-			fprintf(stdout, "[%d|%.02f|P%d] ", uav->getId(), uav->getResudualEnergy(), uav->getDeliveredPackage());
+			fprintf(stdout, "[%d|%.01f|P%d]", uav->getId(), uav->getResudualEnergy(), uav->getDeliveredPackage());
 		}
-		cout << " ---!";
+		cout << " -!";
 		//cout << endl;
 		fflush(stdout);
 
 		//flowGraph.execute(t, listUav);
 		//flowGraph->execute(t_tm, listUav);
 
-		//update the warehouses
+		//update the homes
 		for (auto& h : homesMap) {
 			h.second.update(t_tm);
 		}
@@ -305,10 +293,10 @@ void Simulator::run(void) {
 			uav->run(t_tm, time_step_sec);
 		}
 
-		//updateThe batteries
-		for(auto& uav : listUav) {
+		//updateThe batteries on the uav
+		/*for(auto& uav : listUav) {
 			updateBatteries(uav, time_step_sec);
-		}
+		}*/
 
 		// check the lifetime
 		for(auto& uav : listUav) {

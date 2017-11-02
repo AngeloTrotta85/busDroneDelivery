@@ -49,6 +49,7 @@ public:
 	void run(struct std::tm now_time_tm, unsigned int time_step);
 
 	double addEnergy(double difference, double seconds);
+	void updateBattery(unsigned int time_step);
 
 	bool check_pkt_feasibility(Package *p);
 
